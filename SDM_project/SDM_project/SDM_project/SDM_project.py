@@ -2,32 +2,34 @@
 from patient import Patient
 from robot import Robot
 from doctor import Doctor
-
+from world import World
 
 ### setup
 
-numPatients = 2
+numPatients = 1
 numDoctors = 1
 numRobots = 1
 
+world = World([10, 10])
+
 patients = []
 for p in range(0, numPatients):
-    patient = Patient(p)
+    patient = Patient([p, 5, 5])
     patients.append(patient)
 
 doctors = []
 for d in range(0, numDoctors):
-    doctor = Doctor([d, 1])
+    doctor = Doctor([d, 2, 2])
     doctors.append(doctor)
 
 robots = []
 for r in range(0, numRobots):
-    robot = Robot([r,1, 100])
+    robot = Robot([r,1,1, 1])
     robots.append(robot)
 
 ## do things
 
-maxTime = 100
+maxTime = 1
 for time in range(0, maxTime):
     # check robots possible actions
     for robot in robots:
@@ -40,3 +42,9 @@ for time in range(0, maxTime):
         patient.iterate()
         print('Patient[', patient.id,'] IV Level: ', patient.iv.level)
         print('Patient[', patient.id,'] status: ', patient.checkStatus() )
+
+
+    [path, path_length] = world.aStar([robot, patient, 5])
+    print("path length: ", path_length)
+    for p in path:
+        print(" ", p.x, ", ", p.y)

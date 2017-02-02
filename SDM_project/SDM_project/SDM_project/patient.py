@@ -2,9 +2,11 @@
 from ivBag import IvBag
 
 class Patient(object):
-    """description of class"""
+    """description of class""" 
     def __init__(self, arg):
-        self.id = arg
+        self.id = arg[0]
+        self.x = arg[1]
+        self.y = arg[2]
         self.iv = IvBag([100.0, 100.0, 1.5, 0.5])
         
     def iterate(self):
