@@ -29,12 +29,13 @@ for r in range(0, numRobots):
 
 ## do things
 
-maxTime = 1
+maxTime = 100
 for time in range(0, maxTime):
     # check robots possible actions
     for robot in robots:
         for patient in patients:
-            if patient.iv.checkLevel() < 5:
+            [path, path_length] = world.aStar([robot, patient, 5])
+            if patient.iv.checkLevel() < path_length:
                 patient.iv.refill()
 
     # iterate the patient and environment
@@ -42,9 +43,3 @@ for time in range(0, maxTime):
         patient.iterate()
         print('Patient[', patient.id,'] IV Level: ', patient.iv.level)
         print('Patient[', patient.id,'] status: ', patient.checkStatus() )
-
-
-    [path, path_length] = world.aStar([robot, patient, 5])
-    print("path length: ", path_length)
-    for p in path:
-        print(" ", p.x, ", ", p.y)

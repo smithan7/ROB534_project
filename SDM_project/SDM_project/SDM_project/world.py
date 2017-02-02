@@ -20,8 +20,6 @@ class World(object):
 
         start.g = 0
         start.f = epsilon * self.heuristic( [start, goal] )
-        print("start: ", start.x, ", ", start.y)
-        print("goal: ", goal.x, ", ", goal.y)
 
         o_set = []
         c_set = []
