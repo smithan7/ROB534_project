@@ -6,6 +6,14 @@ class Task(object):
         self.reward = arg[2]
         self.index = arg[3]
 
+        self.pMine = []
+        self.pMyTime = []
+        self.pParent = []
+        self.pDepth = []
+
+        self.pTaken = []
+        self.pTakenTime = []
+
     def getReward(self, arg):
         # eventually this will take in time and solve for the reward at the time it will be solved
         return self.Reward

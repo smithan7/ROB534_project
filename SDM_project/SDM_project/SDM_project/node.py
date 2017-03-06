@@ -22,15 +22,101 @@ class Node(object):
         self.value = 0
         self.updateValue()
 
-
+        ## for sampling the tree
+        self.nSamples = -1
 
         self.taskIndex = arg[6]
 
+        ## for UCT
         self.nPulls = 0 # how many times have i been searched
+
         self.children = [] # my kids!
-        self.maxSearchDepth = 10 # how deep do I search the tree
-        self.maxRollOutIters = 10 # how deep is my rollout horizon
+        self.maxSearchDepth = 3 # how deep do I search the tree
+        self.maxRollOutIters = 1 # how deep is my rollout horizon
         
+    def generateQ( self, args):
+        # this will be used to get the probability of an action being completed at a certain time.
+       # The general idea is to use the max value of each node's children (recursive by back prop) to determine the probability of each node being selected at that time, this is stored to a list as:
+       #        [task id, prob of selection, time of task completion]
+       # this is then used to determine the probability that a task will be completed by a certain time, which is passed on to other agents.
+       path = args[0]
+
+    def updateRewards_WRT_Q( self, args ):
+        # this is used to take Q and update the rewards. The idea is that if P(task 0 is complete at time = 10) and I arrive there at time 10 then when I plan I should assume a reward of 0.7*reward_0
+        # This should cause me to stay away from areas I am unlikely to get to before another agent and should cause the paths to converge.
+        path = args[0]
+
+
+    def sampleTreeEpsilonGreedy( self, args ):
+        # this needs to eplore the tree with some level of greedyness ( to select better paths more frequently or even the optimal path or completely random path as desired ) and 
+        # return for each iteration of search the value of the path, the expected time of completing each task.
+        # this information will be used to calculate the probability of tasks being completed at certain times by each agent
+        epsilon = args[0] # how greedy am I?
+        task_index_list = args[1] # list of actions: each action will have the task id (global / universal name) and time of completion.
+        sample_value = 0
+        if len( self.children ) > 0:
+            if random.random() < epsilon:
+                # get best child and continue search
+                goldencChild = max(self.children, key=attrgetter('value') )
+                #print("nChildren: ", len(self.children) )
+                [task_index_list, sample_value] = goldencChild.sampleTree([epsilon, task_index_list])
+            else:
+                # get random child and continue to sample
+                gc = random.randint(0, len(self.children)-1 );
+                [task_index_list, sample_value] = self.children[gc].sampleTree([epsilon, task_index_list])
+        else:
+            sample_value = self.valueAbove + self.value
+
+        task_index_list.append( self.taskIndex )
+        
+        return [task_index_list, sample_value]
+
+    def sampleTreeUCB( self, args ):
+        # this needs to eplore the tree with some level of greedyness ( to select better paths more frequently or even the optimal path or completely random path as desired ) and 
+        # return for each iteration of search the value of the path, the expected time of completing each task.
+        # this information will be used to calculate the probability of tasks being completed at certain times by each agent
+        self.nSamples = self.nSamples + 1
+
+        task_list = args[0] # list of actions: each action will have the task id (global / universal name) and time of completion.
+        time = args[1]
+        myProb = args[2]
+        myDepth = args[3]+1
+        sample_value = 0
+        if len(self.children) > 0:
+            # get total value
+            sv = sum(child.value for child in self.children)
+            # get each childs relative value
+            for child in self.children:
+                 if child.nSamples == -1:
+                     # only add to task list if it hasn't been campled before
+                     rv = child.value / sv
+                     task_list[ child.taskIndex ].pMine.append( myProb * rv )
+                     task_list[ child.taskIndex ].pMyTime.append( time + 5 )
+                     task_list[ child.taskIndex ].pParent.append( self.taskIndex )
+                     task_list[ child.taskIndex ].pDepth.append( myDepth + 1 )
+                     child.nSamples = 0
+                     
+            
+            # if I have children to samples
+            mv = max(child.value for child in self.children)
+            um = -1
+            goldenChild = self.children[0]
+            for child in self.children:
+                u = 0
+                if child.nSamples > 0: # child has been pulled, use UCB
+                    val = child.value / mv
+                    iter = 1.4142*math.sqrt(math.log(child.nSamples)/self.nSamples)
+                    u = val + iter
+                    if u > um:
+                        goldenChild = child
+                        um = u
+                else: # child has NOT been pulled, pull child
+                    goldenChild = child
+                    break
+
+            task_list = goldenChild.sampleTreeUCB([task_list, time + 5, myProb * goldenChild.value/sv, myDepth ])
+        
+        return task_list
 
     def updateValue( self ):
         self.value = self.valueMine + self.valueBelow
@@ -123,16 +209,16 @@ class Node(object):
         if self.searchDepth < self.maxSearchDepth:
             if len(self.children) > 0:
                 # if I have children to search
-                self.nPulls = self.nPulls + 1;
+                self.nPulls = self.nPulls + 1
                 mv = max(child.value for child in self.children)
-                um = -1;
+                um = -1
                 goldenChild = self.children[0]
                 for child in self.children:
                     u = 0
                     if child.nPulls > 0: # child has been pulled, use UCB
                         val = child.value / mv
                         iter = 1.4142*math.sqrt(math.log(child.nPulls)/self.nPulls)
-                        u = val + iter;
+                        u = val + iter
                         if u > um:
                             goldenChild = child
                             um = u

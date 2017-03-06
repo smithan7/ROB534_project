@@ -12,6 +12,11 @@ class World(object):
         self.obstacle = 1
         self.free = 0
 
+    def getPathCosts( self, args):
+        tasks = args
+        for task in tasks:
+            for task2 in tasks:
+                [path, length] = self.aStar(task, task2)
 
     def aStar(self, arg):
         start = State([arg[0].x, arg[0].y]) # state
