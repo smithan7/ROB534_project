@@ -11,7 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 import os, pygame
+from pomdp import POMDP
 from pygame.locals import *
+
+#POMDP set-up
+filename_env =  'SDM.pomdp'
+filename_policy = 'out.policy'
+pomdp = POMDP(filename_env, filename_policy, np.array([[0.5],[0.5]]))
 
 ### GUI setup
 fps                 = 10        #at most  this many frames per second
@@ -199,6 +205,13 @@ for it_time in range(0, maxTime):
             [path, path_length] = world.aStar([robot, patient, 5])
             if patient.iv.checkLevel() < path_length:
                 patient.iv.refill()
+                
+    #calculate human rationality
+    obs = 0 #will be range of rationaility 
+    pomdp.update_belief(0,obs)
+    rational = pomdp.belief[1]
+    
+    
 
     # iterate the patient and environment
     for patient in patients:
