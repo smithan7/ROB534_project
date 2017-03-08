@@ -5,8 +5,8 @@ import numpy as np
 class World(object):
     """description of class"""
     def __init__(self, arg):
-        self.width = arg[0]
-        self.height = arg[1]
+        self.width = arg[0]+1
+        self.height = arg[1]+1
 
         self.map = np.zeros([self.width, self.height])
         self.obstacle = 1
@@ -48,6 +48,9 @@ class World(object):
                     current = prev
 
                 path.reverse()
+                if length > 0:
+                    path.pop(0)
+                    
                 return [path, length]
 
             nbrs = self.getNbrs( current )
