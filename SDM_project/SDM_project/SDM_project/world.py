@@ -14,9 +14,12 @@ class World(object):
 
     def getPathCosts( self, args):
         tasks = args
-        for task in tasks:
-            for task2 in tasks:
-                [path, length] = self.aStar(task, task2)
+        costs = [[[] for i in range(len(tasks))] for j in range(len(tasks))]
+        for i in range(len(tasks)):
+            for j in range(i, len(tasks)):
+                costs[i][j] = self.aStar(tasks[i],tasks[j])
+                costs[j][i] = costs[i][j]
+        return costs
 
     def aStar(self, arg):
         start = State([arg[0].x, arg[0].y]) # state
@@ -54,7 +57,7 @@ class World(object):
                 return [path, length]
 
             nbrs = self.getNbrs( current )
-            
+
 
             for nbr in nbrs:
                 if self.map[nbr.x, nbr.y] == self.free and not self.inList([c_set, nbr]):
@@ -67,7 +70,7 @@ class World(object):
                         nbr.g = current.g + 1
                         nbr.f = nbr.g + epsilon * self.heuristic([nbr, goal])
                         nbr.cameFrom = current
-        
+
         return [-1, float("inf")]
 
     def inList(self, arg):
@@ -83,7 +86,7 @@ class World(object):
     def getNbrs(self, arg):
         c = State([arg.x, arg.y])
         nbrs = []
-        
+
         nx = [-1,-1,-1, 0,0, 1,1,1]
         ny = [-1, 0, 1,-1,1,-1,0,1]
 
@@ -94,7 +97,7 @@ class World(object):
 
         return nbrs
 
-            
+
     def getMindex(self, arg):
         set = arg
         min = float("inf")
