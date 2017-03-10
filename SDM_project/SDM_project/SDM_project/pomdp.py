@@ -91,7 +91,7 @@ class POMDP:
             b2 = 1.0 - b1
             self.belief = array([[b1], [b2]])
             best_action, reward = self.get_best_action()
-            print b1, b2, "\t", self.get_action_str(best_action)
+            print(b1, b2, "\t", self.get_action_str(best_action) )
 
         # restore to old belief
         self.belief = old_belief
@@ -435,17 +435,17 @@ class POMDPEnvironment:
         return array(b_new)
 
     def print_summary(self):
-        print "discount:", self.discount
-        print "values:", self.values
-        print "states:", self.states
-        print "actions:", self.actions
-        print "observations:", self.observations
-        print ""
-        print "T:", self.T
-        print ""
-        print "Z:", self.Z
-        print ""
-        print "R:", self.R
+        print("discount:", self.discount)
+        print("values:", self.values)
+        print("states:", self.states)
+        print("actions:", self.actions)
+        print("observations:", self.observations)
+        print("")
+        print("T:", self.T)
+        print("")
+        print("Z:", self.Z)
+        print("")
+        print("R:", self.R)
 
 
 class POMDPPolicy:

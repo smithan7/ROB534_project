@@ -38,11 +38,11 @@ class Doctor(pygame.sprite.Sprite):
         
     def updateAction(self,action,patient_num):
         self.action = action
-        self.patient_num = patient_num-1
+        self.patient_num = patient_num
         
         self.performing_action = True
         if action ==0:
-           print "YOU DID NOTHING."
+           print("YOU DID NOTHING.")
         elif action ==1:
             self.changeIV(self.patient_num)
         elif action == 2:
@@ -50,13 +50,13 @@ class Doctor(pygame.sprite.Sprite):
         elif action ==3:
             self.cleanPatient(self.patient_num)
         elif action ==4:
-            self.cleanVomit(self.patient_num+1)
+            self.cleanVomit(self.patient_num)
         elif action ==5:
             self.checkSymptoms(self.patient_num)
             
     def continueAction(self):
         if self.action ==0:
-           print "YOU DID NOTHING."
+           print("YOU DID NOTHING.")
            self.performing_action = False
         elif self.action ==1:
             self.changeIV(self.patient_num)
@@ -65,7 +65,7 @@ class Doctor(pygame.sprite.Sprite):
         elif self.action ==3:
             self.cleanPatient(self.patient_num)
         elif self.action ==4:
-            self.cleanVomit(self.patient_num+1)
+            self.cleanVomit(self.patient_num)
         elif self.action ==5:
             self.checkSymptoms(self.patient_num)
         
@@ -76,8 +76,8 @@ class Doctor(pygame.sprite.Sprite):
             move = path.pop(0)
             self.move(move.x,move.y)
         else:
-            print 'YOU MADE IT'
-            patient.iv.refill()
+            print('YOU MADE IT')
+            patient.ivLevel = 100
             self.performing_action = False
         
         
@@ -88,7 +88,7 @@ class Doctor(pygame.sprite.Sprite):
             move = path.pop(0)
             self.move(move.x,move.y)
         else:
-            print 'YOU MADE IT'
+            print('YOU MADE IT')
             self.performing_action = False
        
         
@@ -99,7 +99,7 @@ class Doctor(pygame.sprite.Sprite):
             move = path.pop(0)
             self.move(move.x,move.y)
         else:
-            print 'YOU MADE IT'
+            print('YOU MADE IT')
             self.performing_action = False
   
     def cleanVomit(self,v_pos):
@@ -108,7 +108,7 @@ class Doctor(pygame.sprite.Sprite):
             if v.id == v_pos:
                 vom = v
         if vom == -1:
-            print "Patient ",v_pos, " has not vomitted."
+            print("Patient ",v_pos, " has not vomitted.")
             self.performing_action = False
             return
         [path, path_length] = self.world.aStar([self, vom, 5])
@@ -116,10 +116,10 @@ class Doctor(pygame.sprite.Sprite):
             move = path.pop(0)
             self.move(move.x,move.y)
         else:
-            print 'YOU MADE IT'
+            print('YOU MADE IT')
             self.performing_action = False
             self.vomit.remove(vom)
-            self.patients[v_pos-1].dirty= False
+            self.patients[v_pos].dirty= False
             
 
         
@@ -130,5 +130,5 @@ class Doctor(pygame.sprite.Sprite):
             move = path.pop(0)
             self.move(move.x,move.y)
         else:
-            print 'YOU MADE IT'
+            print('YOU MADE IT')
             self.performing_action = False
