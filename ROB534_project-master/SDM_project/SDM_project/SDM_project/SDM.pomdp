@@ -1,0 +1,26 @@
+#POMDP for Seabotix
+
+discount: 0.95
+values: reward
+states: B E 
+actions: optimalPath 
+observations: perfectRational mostlyRational someRational notRational 
+
+T: optimalPath
+0.9999 0.0001 
+0.0001 0.9999 
+
+O: optimalPath
+0.0434782608696 0.217391304348 0.304347826087 0.434782608696 
+0.434782608696 0.304347826087 0.217391304348 0.0434782608696 
+
+R: optimalPath : B : * : perfectRational 10
+R: optimalPath : B : * : mostlyRational 5
+R: optimalPath : B : * : someRational -200
+R: optimalPath : B : * : notRational -1000
+R: optimalPath : E : * : perfectRational 500
+R: optimalPath : E : * : mostlyRational 100
+R: optimalPath : E : * : someRational -20
+R: optimalPath : E : * : notRational -50
+
+
