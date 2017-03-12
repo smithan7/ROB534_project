@@ -195,11 +195,13 @@ for it_time in range(0, maxTime):
     # iterate the patient and environment
     for patient in patients:
         patient.iterate(it_time)
-    if patient.vomit == True:
-            nbr = random.choice([[0,1],[0,-1],[1,0],[-1,0]])
-            nbr = [patient.id,nbr[0]+patient.x,nbr[1]+patient.y]
-            v_spots.append(Vomit(v_sprite,im_scale_x,im_scale_y,nbr))
-
+        if patient.vomit == True and patient.dirty == False:
+                nbr = random.choice([[0,1],[0,-1],[1,0],[-1,0]])
+                nbr = [patient.id,nbr[0]+patient.x,nbr[1]+patient.y]
+                v_spots.append(Vomit(v_sprite,im_scale_x,im_scale_y,nbr))
+                patient.dirty = True
+                
+  
     #Update sprites
     vSprites = []
     for v in v_spots:
@@ -213,6 +215,7 @@ for it_time in range(0, maxTime):
     for v in vSprites:
         v.update()
     screen.blit(background, (0, 0))  #redraws the entire bkgrnd.
+    
     robotSprite.draw(screen)
     doctorSprite.draw(screen)
     for p in pSprites:

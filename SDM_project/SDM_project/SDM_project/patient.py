@@ -22,11 +22,11 @@ class Patient(object):
         self.ivLevel -= 1
         self.hunger -= 1
         if self.hunger > 50:
-           if random.random() < 0.1 and self.vomit == False:
+           if random.random() < 0.01 and self.vomit == False:
                print("Patient " ,self.id, " vomitted")
                self.vomit = True
                self.vomit_time = time_step
-               self.dirty = True
+             #  self.dirty = True
                self.hunger -= 30
            else:
                self.vomit = False
