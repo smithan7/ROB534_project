@@ -31,6 +31,9 @@
     <Compile Include="State.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="treeNode.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="world.py">
       <SubType>Code</SubType>
     </Compile>

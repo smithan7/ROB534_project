@@ -1,10 +1,25 @@
 import pygame
-
+import numpy as np
+from treeNode import TreeNode
+import time
 
 d_edge           = 51      #edge of square surrounding robot (in pixels)
 d_transparency   = 0      #0 is totally transp., 255 totally opaque
 
 class Doctor(pygame.sprite.Sprite):
+
+    transitions = np.ones((6,4))
+    state = np.full( (6,4), -float("inf") )
+    rewards = np.zeros((6,4))
+    q_prop = np.zeros((6,4))
+    locations = np.array([ [3,5], [3,9], [14,2],[14,5],[14,8],[14,11] ])
+
+    for i in range(0,6):
+        transitions[i][0] = -1
+        transitions[i][1] = -1
+        state[i][0] = 100
+        state[i][1] = 100
+
     """description of class"""
     def __init__(self, image,im_scale_x,im_scale_y, arg,world,patients,vomit):
         self.id = arg[0]
@@ -22,6 +37,8 @@ class Doctor(pygame.sprite.Sprite):
         self.im_scale_x = im_scale_x
         self.im_scale_y = im_scale_y
         
+        self.TreeNode = TreeNode(self.x, self.y, 0, self.state, self.transitions, self.locations, 0, 0, -1,-1)
+
         self.world  = world
         self.patients = patients
         self.performing_action = False
@@ -77,7 +94,7 @@ class Doctor(pygame.sprite.Sprite):
             self.move(move.x,move.y)
         else:
             print('YOU MADE IT')
-            patient.ivLevel = 100
+            self.patients[(patient_num)].ivLevel = 100
             self.performing_action = False
         
         
@@ -89,6 +106,7 @@ class Doctor(pygame.sprite.Sprite):
             self.move(move.x,move.y)
         else:
             print('YOU MADE IT')
+            self.patients[(patient_num)].hunger = 100
             self.performing_action = False
        
         
@@ -132,3 +150,31 @@ class Doctor(pygame.sprite.Sprite):
         else:
             print('YOU MADE IT')
             self.performing_action = False
+
+
+    def searchTreeNode( self, args):
+        search_time = args[0]
+        method = args[1]
+        method_param = args[2]
+        current_time = args[3]
+
+        start_time = time.clock()
+        if method == 'Epsilon Greedy':
+            while time.clock() - start_time < search_time:
+                #print("Progress: ", float(i)/iters)
+                self.TreeNode.epsilonGreedySearch([method_param, current_time])
+        elif method == 'UCT':
+            while time.clock() - start_time < search_time:
+                #print("Progress: ", float(i)/iters)
+                self.TreeNode.uctSearch( [current_time, current_time] )
+        elif method == 'Greedy':
+            while time.clock() - start_time < search_time:
+                #print("Progress: ", float(i)/iters)
+                self.TreeNode.greedySearch( current_time )
+        else:
+            while time.clock() - start_time < search_time:
+                print("no search method given, default to UCT")
+                #print("Progress: ", float(i)/iters)
+                self.TreeNode.uctSearch( [current_time, current_time] )
+        print(" Time to search: ", time.clock() - start_time)
+

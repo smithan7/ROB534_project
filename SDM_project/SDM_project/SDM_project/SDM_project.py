@@ -94,16 +94,17 @@ world = World([16, 12])
 patients = []
 patientSprites = []
 patients.append(Patient([0, 3, 5]))
-patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[0, 3, 5]))
 patients.append(Patient([1, 3, 9]))
-patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[1,3,9]))
 patients.append(Patient([2, 14, 2]))
-patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[2,14,2]))
 patients.append(Patient([3, 14, 5]))
-patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[3,14,5]))
 patients.append(Patient([4, 14, 8]))
-patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[4,14,8]))
 patients.append(Patient([5, 14, 11]))
+
+patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[0, 3, 5]))
+patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[1,3,9]))
+patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[2,14,2]))
+patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[3,14,5]))
+patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[4,14,8]))
 patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[5,14,11]))
 
 v_spots = []
@@ -142,7 +143,7 @@ for p in pSprites:
 pygame.display.flip()
 
 # solve TSP between tasks using MCTS
-searchIters = 1000
+search_time = 1.0
 searchMethod = 'UCT' #'UCT', 'Epsilon Greedy', 'Greedy'
 searchParam = 0.5 # epsilon for e-greedy
 
@@ -155,9 +156,22 @@ searchParam = 0.5 # epsilon for e-greedy
 
 ## do things
 maxTime = 100
+
+#calculate human rationality
+obs = 0 #will be range of rationaility 
+pomdp.update_belief(0,obs)
+rational = pomdp.belief[1]
+
 for it_time in range(0, maxTime):
     for d in doctors:
         if not d.performing_action:
+
+            # build doctor's tree
+            d.TreeNode.updatePatients( robot.state, patients )
+            d.searchTreeNode( [search_time, searchMethod, searchParam, it_time])
+            robots[0].q_prob = d.TreeNode.sampleTree(robots[0].q_prob )
+            
+
             for patient in patients:
                 print('Patient[', patient.id,'] IV Level, hunger, vomit, dirty: ', patient.ivLevel,patient.hunger, patient.vomit, patient.dirty)
             action_h = int(input('Choose an action: [0: do nothing, 1: change IV, 2: feed patient, 3: clean patient, 4: clean vomit, 5: check symptoms] '))
@@ -166,8 +180,10 @@ for it_time in range(0, maxTime):
             else:
                 patient_num = 0
             d.updateAction(action_h,patient_num)
+            obs = d.TreeNode.getRationality(patient_num, action_h)
         else:
             d.continueAction()
+
     
     
     pygame.display.set_caption(sim_version + caption+ str(it_time))
@@ -175,31 +191,34 @@ for it_time in range(0, maxTime):
     # check robots possible actions
     for robot in robots:
         if not robot.performing_action:
-            robot.updatePatients(patients)
-            robot.searchTree( [searchIters, searchMethod, searchParam, it_time ])
+
+            robot.TreeNode.updatePatients( robot.state, patients )
+            robot.update_Q( rational )
+            robot.searchTreeNode( [search_time, searchMethod, searchParam, it_time])
+            #robot.updatePatients(patients)
+            #robot.searchTree( [search_time, searchMethod, searchParam, it_time ])
             path = []
-            path = robot.Tree.exploitTree( path )
+            path = robot.TreeNode.exploitTree( path )
+            robot.createNewTree( it_time )
+            #path = robot.Tree.exploitTree( path )
             print("[patients, tasks]: ", path )
             robot.executeAction( path[-2] )
             robot.createNewTree( it_time )
         else:
             robot.continueAction()
-
-    #calculate human rationality
-    obs = 0 #will be range of rationaility 
-    pomdp.update_belief(0,obs)
-    rational = pomdp.belief[1]
     
     
 
     # iterate the patient and environment
     for patient in patients:
         patient.iterate(it_time)
-    if patient.vomit == True:
-            nbr = random.choice([[0,1],[0,-1],[1,0],[-1,0]])
-            nbr = [patient.id,nbr[0]+patient.x,nbr[1]+patient.y]
-            v_spots.append(Vomit(v_sprite,im_scale_x,im_scale_y,nbr))
-
+        if patient.vomit == True and patient.dirty == False:
+                nbr = random.choice([[0,1],[0,-1],[1,0],[-1,0]])
+                nbr = [patient.id,nbr[0]+patient.x,nbr[1]+patient.y]
+                v_spots.append(Vomit(v_sprite,im_scale_x,im_scale_y,nbr))
+                patient.dirty = True
+                
+  
     #Update sprites
     vSprites = []
     for v in v_spots:
@@ -207,12 +226,14 @@ for it_time in range(0, maxTime):
         vSprites.append(vomitSprite)
       
     robotSprite.update()
+    doctors[0].rect
     doctorSprite.update()
     for p in pSprites:
         p.update()
     for v in vSprites:
         v.update()
     screen.blit(background, (0, 0))  #redraws the entire bkgrnd.
+    
     robotSprite.draw(screen)
     doctorSprite.draw(screen)
     for p in pSprites:
@@ -224,6 +245,8 @@ for it_time in range(0, maxTime):
     time.sleep(.1)
         
     pygame.display.flip()   #all changes are drawn at once (double buffer)
+    # draw the window onto the screen
+    print(robots[0].x, " ", robots[0].y) 
     
 ## exit pygame ##
 pygame.quit()               #also calls display.quit()

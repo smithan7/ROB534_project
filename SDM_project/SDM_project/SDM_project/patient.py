@@ -11,22 +11,29 @@ class Patient(object):
         self.y = arg[2]
         self.n_tasks = 3
         self.rewards = [0]*4
-        self.ivLevel = random.randint(50,100)
-        self.hunger = random.randint(50,100)
+        self.ivLevel = random.randint(20,100)
+        self.hunger = random.randint(20,100)
+        self.vomit_time = -float("inf")
+        self.dirty_time = -float("inf")
         self.vomit = False
-        self.vomitTime = 0
         self.dirty = False
+
+        self.ivPrior = -1
+        self.hungerPrior = -1
+        self.vomitPrior = -1
+        self.dirtyPrior = -1
+
         
     def iterate(self, arg):
         time_step = arg
         self.ivLevel -= 1
         self.hunger -= 1
         if self.hunger > 50:
-           if random.random() < 0.1 and self.vomit == False:
+           if random.random() < 0.01 and self.vomit == False:
                print("Patient " ,self.id, " vomitted")
                self.vomit = True
                self.vomit_time = time_step
-               self.dirty = True
+             #  self.dirty = True
                self.hunger -= 30
            else:
                self.vomit = False
@@ -42,7 +49,7 @@ class Patient(object):
     def completeTask( self, arg ):
         t_index = arg
         if t_index == 0:
-            self.ivLevel = 100
+            self.ivLevel = 100            
         elif t_index == 1:
             self.hunger = 100
         elif t_index == 2:
@@ -52,17 +59,17 @@ class Patient(object):
            
     def getIVRewardAtTime( self, arg ):
         dt = arg
-        if self.ivLevel-dt > 50:
+        if self.ivLevel-dt > 20:
             return 0.0
         else:
-            return 50 - (self.ivLevel - dt)
+            return 100# - (self.ivLevel - dt)
 
     def getHungerRewardAtTime( self, arg ):
         dt = arg
-        if self.hunger - dt > 50:
+        if self.hunger - dt > 20:
             return 0.0
         else:
-            return 50 - (self.hunger - dt)        
+            return 50# - (self.hunger - dt)        
 
     def getVomitReward( self ):
         if self.vomit == False:
