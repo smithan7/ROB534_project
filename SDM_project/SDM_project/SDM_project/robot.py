@@ -135,7 +135,7 @@ class Robot(pygame.sprite.Sprite):
             self.move(move.x,move.y)
         else:
             print('Robot filled IV')
-            self.patients[patient_num].ivLevel = 100
+            patient.ivLevel = 100
             self.performing_action = False
         
         
@@ -147,7 +147,6 @@ class Robot(pygame.sprite.Sprite):
             self.move(move.x,move.y)
         else:
             print('Robot fed patient')
-            self.patients[(patient_num)].hunger = 100
             self.performing_action = False
        
         
