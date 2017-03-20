@@ -22,6 +22,14 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="button.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="fuzzy_bin.py" />
+    <Compile Include="hunger.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="rationality.py" />
     <Compile Include="task.py">
       <SubType>Code</SubType>
     </Compile>

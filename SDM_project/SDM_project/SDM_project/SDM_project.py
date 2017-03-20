@@ -84,8 +84,6 @@ im_scale_x = (display_cols)/16 #scale world position to image position
 im_scale_y = (display_rows)/12
 
 ### setup
-
-numPatients = 6
 numDoctors = 1
 numRobots = 1
 
@@ -93,12 +91,20 @@ world = World([16, 12])
 
 patients = []
 patientSprites = []
-patients.append(Patient([0, 3, 5]))
-patients.append(Patient([1, 3, 9]))
-patients.append(Patient([2, 14, 2]))
-patients.append(Patient([3, 14, 5]))
-patients.append(Patient([4, 14, 8]))
-patients.append(Patient([5, 14, 11]))
+if  True:
+    patients.append(Patient(0, 3, 5, random.randint(20,100), random.randint(20,100)))
+    patients.append(Patient(1, 3, 9, random.randint(20,100), random.randint(20,100)))
+    patients.append(Patient(2, 14, 2, random.randint(20,100), random.randint(20,100)))
+    patients.append(Patient(3, 14, 5, random.randint(20,100), random.randint(20,100)))
+    patients.append(Patient(4, 14, 8, random.randint(20,100), random.randint(20,100)))
+    patients.append(Patient(5, 14, 11, random.randint(20,100), random.randint(20,100)))
+else:
+    patients.append(Patient(0, 3, 5, 100, 10))
+    patients.append(Patient(1, 3, 9, 10, 10))
+    patients.append(Patient(2, 14, 2, 100, 100))
+    patients.append(Patient(3, 14, 5, 100, 100))
+    patients.append(Patient(4, 14, 8, 100, 100))
+    patients.append(Patient(5, 14, 11, 100, 100))
 
 patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[0, 3, 5]))
 patientSprites.append( PatientSprite(p_sprite,im_scale_x,im_scale_y,[1,3,9]))
@@ -112,12 +118,12 @@ vSprites = []
 
 doctors = []
 for d in range(0, numDoctors):
-    doctor = Doctor(d_sprite,im_scale_x,im_scale_y,[d, 2, 2],world,patients,v_spots)
+    doctor = Doctor(d_sprite, im_scale_x, im_scale_y, d, 2, 2, len(patients), 4, world, patients, v_spots)
     doctors.append(doctor)
 
 robots = []
 for r in range(0, numRobots):
-    robot = Robot(r_sprite,im_scale_x,im_scale_y,[r,1,1, 1],world,patients,v_spots)
+    robot = Robot(r_sprite, im_scale_x, im_scale_y, r, 1, 1, len(patients), 4, world, patients, v_spots)
     robots.append(robot)
 
 #GUI sprites
@@ -143,65 +149,82 @@ for p in pSprites:
 pygame.display.flip()
 
 # solve TSP between tasks using MCTS
-search_time = 1.0
-searchMethod = 'UCT' #'UCT', 'Epsilon Greedy', 'Greedy'
+searchMethod = 'UCT' #'UCT', 'Greedy' --- not updated to work 'Epsilon Greedy'
+include_rationality = True
 searchParam = 0.5 # epsilon for e-greedy
 
-#t_time = 0
-#n_samples = 100
-#for n in range(0,n_samples):
-    # sampled_tasks = robots[0].Tree.sampleTreeEpsilonGreedy([epsilon, task_list, time]) # epsilon, if random(0->1) greater than epsilon choose randomly, else greedy
-    #sampled_tasks = robots[0].Tree.sampleTreeUCB([sampled_tasks, t_time, 1, -1]) # uses UCB to sample tree, accounts for unsampled nodes then value, seems smarter ;)
+doctors_robot_search_depth = 1
+doctors_rollout_depth = 0
+doctors_robot_rollout_iters = 0
+doctors_robot_search_time = 0.01
+doctors_robot_search_iters = 20
 
+doctor_search_depth = 2
+doctor_rollout_depth = 2
+doctor_rollout_iters = 1
+doctor_search_time = 0.2
+doctor_search_iters = 400
+
+robot_search_depth = 3
+robot_rollout_depth = 2
+robot_rollout_iters = 1
+robot_search_time = 1.0
+robot_search_iters = float("inf")
+
+obs = 0
+rational = 0.5
 
 ## do things
 maxTime = 100
-
-#calculate human rationality
-obs = 0 #will be range of rationaility 
-pomdp.update_belief(0,obs)
-rational = pomdp.belief[1]
-
 for it_time in range(0, maxTime):
-    for d in doctors:
-        if not d.performing_action:
-
-            # build doctor's tree
-            d.TreeNode.updatePatients( robot.state, patients )
-            d.searchTreeNode( [search_time, searchMethod, searchParam, it_time])
-            robots[0].q_prob = d.TreeNode.sampleTree(robots[0].q_prob )
-            
+    pygame.event.get()
+    for doctor in doctors:
+        if not doctor.performing_action:
 
             for patient in patients:
                 print('Patient[', patient.id,'] IV Level, hunger, vomit, dirty: ', patient.ivLevel,patient.hunger, patient.vomit, patient.dirty)
+
+            # build doctor's tree
+            doctor.TreeNode.updatePatients( doctor.state, patients )
+            doctor.searchTreeNode( doctor_search_time, doctor_search_iters, searchMethod, searchParam, it_time, doctor_search_depth, doctor_rollout_depth, doctor_rollout_iters)
+            path = []
+            path = doctor.TreeNode.exploitTree( path )
+            #print("doctor's path[patients, tasks]: ", path )            
+            robots[0].TreeNode.q_prior = doctor.TreeNode.sampleTree(robots[0].TreeNode.q_prob )
+
             action_h = int(input('Choose an action: [0: do nothing, 1: change IV, 2: feed patient, 3: clean patient, 4: clean vomit, 5: check symptoms] '))
             if action_h != 0 :
                 patient_num = int(input('Which patient?: '))
             else:
-                patient_num = 0
-            d.updateAction(action_h,patient_num)
-            obs = d.TreeNode.getRationality(patient_num, action_h)
-        else:
-            d.continueAction()
+                patient_num = -1
+            doctor.updateAction(action_h,patient_num)
 
-    
-    
+            if include_rationality:
+                obs = doctor.TreeNode.getRationality(patient_num, action_h)
+                rational = rational + 0.1*(obs-rational)
+                #print("rationality: ", rational)
+                #pomdp.update_belief(0,obs)
+                #rational = pomdp.belief[1]
+
+            doctor.createNewTree( it_time )
+        else:
+            doctor.continueAction()
+
     pygame.display.set_caption(sim_version + caption+ str(it_time))
     
     # check robots possible actions
     for robot in robots:
         if not robot.performing_action:
-
             robot.TreeNode.updatePatients( robot.state, patients )
             robot.update_Q( rational )
-            robot.searchTreeNode( [search_time, searchMethod, searchParam, it_time])
-            #robot.updatePatients(patients)
-            #robot.searchTree( [search_time, searchMethod, searchParam, it_time ])
+            #print("q_prior: ", robot.TreeNode.q_prior)
+            #print("q_prob: ", robot.TreeNode.q_prob)
+
+            robot.searchTreeNode( robot_search_time, robot_search_iters, searchMethod, searchParam, it_time, robot_search_depth, robot_rollout_depth, robot_rollout_iters)
             path = []
             path = robot.TreeNode.exploitTree( path )
             robot.createNewTree( it_time )
-            #path = robot.Tree.exploitTree( path )
-            print("[patients, tasks]: ", path )
+            #print("robot's path[patients, tasks]: ", path )
             robot.executeAction( path[-2] )
             robot.createNewTree( it_time )
         else:
@@ -246,7 +269,6 @@ for it_time in range(0, maxTime):
         
     pygame.display.flip()   #all changes are drawn at once (double buffer)
     # draw the window onto the screen
-    print(robots[0].x, " ", robots[0].y) 
     
 ## exit pygame ##
 pygame.quit()               #also calls display.quit()

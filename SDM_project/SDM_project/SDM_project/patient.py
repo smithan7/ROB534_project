@@ -1,18 +1,23 @@
 import random
+import math
+
+from ivBag import IvBag
+from hunger import Hunger
+
 
 p_edge           = 51     #edge of square surrounding robot (in pixels)
 p_transparency   = 0      #0 is totally transp., 255 totally opaque
 
 class Patient(object):
     """description of class""" 
-    def __init__(self, arg):
-        self.id = arg[0]
-        self.x = arg[1]
-        self.y = arg[2]
+    def __init__(self, id, x, y, init_iv, init_hunger):
+        self.id = id
+        self.x = x
+        self.y = y
         self.n_tasks = 3
         self.rewards = [0]*4
-        self.ivLevel = random.randint(20,100)
-        self.hunger = random.randint(20,100)
+        self.ivLevel = init_iv
+        self.hunger = init_hunger
         self.vomit_time = -float("inf")
         self.dirty_time = -float("inf")
         self.vomit = False

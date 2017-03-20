@@ -2,13 +2,13 @@ import pygame, sys, random, math
 from pygame.locals import *
 from button import Button
 
-class IvBag(object):
+class Hunger(object):
     """description of class"""
     def __init__(self, x, y, r, level, full, dripMean, dripVar):
         self.x = x
         self.y = y
         self.r = r
-        self.button = button(x+10,y+10,15)
+        self.button = button(x+10,y-10,15)
         self.level = level
         self.full = full
         self.dripMean = dripMean
@@ -28,4 +28,4 @@ class IvBag(object):
         self.level = self.full
 
     def draw(self, screen):
-        pygame.draw.circle(screen, (255,255,255), ( round(self.x), round(self.y) ), self.r, 0)
+        pygame.draw.circle(screen, (255, 0, 255), ( round(self.x), round(self.y) ), self.r, 0)
