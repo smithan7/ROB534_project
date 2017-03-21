@@ -150,18 +150,34 @@ class TreeNode(object):
 
         if task == 0:
             maxR = max([child.cum_reward for child in self.children])
-            if maxR == 0:
+            if maxR <= 1:
                 return 1
             else:
                 return 0
+        elif task == 1:
+           t = 0
+        
+        elif task == 2:
+            t = 1
+        elif task == 3:
+            t = 4
+        elif task == 4:
+            t = 3
+        
 
-        t = self.remap_tasks( task )
+        #t = self.remap_tasks( task )
         p = patient
         
         maxR = max([child.cum_reward for child in self.children])
         minR = min([child.cum_reward for child in self.children])
 
-        if maxR <= 0:
+        if minR == maxR: # only 1 option or options are equivalent
+            for child in self.children:
+                if child.taskIndex == t and child.patientIndex == p:
+                    obs = 1
+                    return obs
+
+        if maxR <= 1:
             return 1/24
 
         for child in self.children:
