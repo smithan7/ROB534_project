@@ -61,10 +61,14 @@ class TreeNode(object):
                 self.rewards[i][0] = 50 * (1-self.q_prob[i][0]) # - self.transitions[i][0]
             elif self.state[i][0] < 30:
                 self.rewards[i][0] = 40 * (1-self.q_prob[i][0]) # - self.transitions[i][0]
+            elif self.state[i][0] < 40:
+                self.rewards[i][0] = 30 * (1-self.q_prob[i][0]) # - self.transitions[i][0]
             if self.state[i][1] < 20:
                 self.rewards[i][1] = 40 * (1-self.q_prob[i][1]) # - self.transitions[i][0]
             elif self.state[i][1] < 30:
                 self.rewards[i][1] = 30 * (1-self.q_prob[i][1]) # - self.transitions[i][0]
+            elif self.state[i][1] < 40:
+                self.rewards[i][1] = 20 * (1-self.q_prob[i][1]) # - self.transitions[i][0]
             if self.state[i][2] > 0:
                 self.rewards[i][2] = 30 * (1-self.q_prob[i][2]) 
             if self.state[i][3] > 0:
@@ -75,10 +79,14 @@ class TreeNode(object):
                 self.rewards[p][0] = 50 * (1-self.q_prob[p][0]) # - self.transitions[i][0]
             elif self.state[p][0] < 30:
                 self.rewards[p][0] = 40 * (1-self.q_prob[p][0]) # - self.transitions[i][0]
+            elif self.state[p][0] < 40:
+                self.rewards[p][0] = 10 * (1-self.q_prob[p][0]) # - self.transitions[i][0]
             if self.state[p][1] < 20:
                 self.rewards[p][1] = 40 * (1-self.q_prob[p][1]) # - self.transitions[i][0]
             elif self.state[p][1] < 30:
                 self.rewards[p][1] = 30 * (1-self.q_prob[p][1]) # - self.transitions[i][0]
+            elif self.state[p][1] < 40:
+                self.rewards[p][1] = 10 * (1-self.q_prob[p][1]) # - self.transitions[i][0]
             if self.state[p][2] > 0:
                 self.rewards[p][2] = 30 * (1-self.q_prob[p][2]) 
             if self.state[p][3] > 0:
